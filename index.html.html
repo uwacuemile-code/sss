@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bima Pay — Rwanda Insurance Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0f0d;
+    --surface: #111a15;
+    --surface2: #162019;
+    --border: #1e3026;
+    --green: #00e87a;
+    --green-dim: #00c86a;
+    --green-glow: rgba(0,232,122,0.12);
+    --text: #e8f5ee;
+    --text-dim: #7a9e88;
+    --accent: #ffcc44;
+    --red: #ff5566;
+    --radius: 16px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Ambient background */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -200px; left: -200px;
+    width: 600px; height: 600px;
+    background: radial-gradient(circle, rgba(0,232,122,0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* NAV */
+  nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(10,15,13,0.85);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 64px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px; font-weight: 800;
+    color: var(--green);
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--text-dim); font-weight: 400; }
+  .nav-links { display: flex; gap: 24px; align-items: center; }
+  .nav-links a {
+    text-decoration: none; color: var(--text-dim);
+    font-size: 14px; font-weight: 500;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover, .nav-links a.active { color: var(--text); }
+  .nav-btn {
+    background: var(--green); color: #0a0f0d;
+    border: none; padding: 8px 20px;
+    border-radius: 8px; font-weight: 600; font-size: 14px;
+    cursor: pointer; transition: background 0.2s;
+  }
+  .nav-btn:hover { background: var(--green-dim); }
+
+  /* MAIN */
+  main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 40px 24px 80px;
+    position: relative; z-index: 1;
+  }
+
+  /* PAGE SECTIONS */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* HERO */
+  .hero {
+    text-align: center;
+    padding: 60px 0 48px;
+  }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--green-glow);
+    border: 1px solid rgba(0,232,122,0.2);
+    border-radius: 100px;
+    padding: 6px 16px;
+    font-size: 13px; color: var(--green);
+    margin-bottom: 28px;
+  }
+  .hero-badge::before {
+    content: '';
+    width: 8px; height: 8px;
+    background: var(--green);
+    border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100%{opacity:1;transform:scale(1)}
+    50%{opacity:0.5;transform:scale(0.8)}
+  }
+  .hero h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: clamp(36px, 6vw, 60px);
+    font-weight: 800;
+    line-height: 1.08;
+    letter-spacing: -2px;
+    margin-bottom: 20px;
+  }
+  .hero h1 .highlight { color: var(--green); }
+  .hero p {
+    color: var(--text-dim);
+    font-size: 18px;
+    max-width: 520px; margin: 0 auto 40px;
+    line-height: 1.6;
+  }
+  .hero-actions { display: flex; gap: 12px; justify-content: center; }
+  .btn-primary {
+    background: var(--green); color: #0a0f0d;
+    border: none; padding: 14px 32px;
+    border-radius: 10px; font-weight: 700; font-size: 15px;
+    cursor: pointer; transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn-primary:hover { background: var(--green-dim); transform: translateY(-1px); }
+  .btn-secondary {
+    background: transparent; color: var(--text);
+    border: 1px solid var(--border); padding: 14px 32px;
+    border-radius: 10px; font-weight: 500; font-size: 15px;
+    cursor: pointer; transition: all 0.2s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .btn-secondary:hover { border-color: var(--green); color: var(--green); }
+
+  /* STATS STRIP */
+  .stats-strip {
+    display: grid; grid-template-columns: repeat(3,1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 48px;
+  }
+  .stat {
+    background: var(--surface);
+    padding: 28px 24px;
+    text-align: center;
+  }
+  .stat-num {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px; font-weight: 800;
+    color: var(--green);
+    display: block;
+  }
+  .stat-label { font-size: 13px; color: var(--text-dim); margin-top: 4px; }
+
+  /* INSURANCE CARDS */
+  .section-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 22px; font-weight: 700;
+    margin-bottom: 20px;
+    letter-spacing: -0.5px;
+  }
+  .section-title span { color: var(--green); }
+
+  .plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 16px;
+    margin-bottom: 48px;
+  }
+  .plan-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    overflow: hidden;
+  }
+  .plan-card::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: var(--green-glow);
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  .plan-card:hover { border-color: var(--green); transform: translateY(-2px); }
+  .plan-card:hover::after { opacity: 1; }
+  .plan-card.selected { border-color: var(--green); }
+  .plan-card.selected::after { opacity: 1; }
+
+  .plan-icon {
+    font-size: 32px; margin-bottom: 16px;
+    display: inline-block;
+  }
+  .plan-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 18px; font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .plan-desc { font-size: 13px; color: var(--text-dim); line-height: 1.5; margin-bottom: 20px; }
+  .plan-price {
+    display: flex; align-items: baseline; gap: 6px;
+  }
+  .plan-price .amount {
+    font-family: 'Syne', sans-serif;
+    font-size: 28px; font-weight: 800; color: var(--green);
+  }
+  .plan-price .period { font-size: 13px; color: var(--text-dim); }
+  .plan-tag {
+    position: absolute; top: 16px; right: 16px;
+    background: var(--accent); color: #0a0f0d;
+    font-size: 11px; font-weight: 700; padding: 3px 10px;
+    border-radius: 100px; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .plan-features { margin-top: 16px; display: flex; flex-direction: column; gap: 6px; }
+  .plan-feature {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 13px; color: var(--text-dim);
+  }
+  .plan-feature::before {
+    content: '✓';
+    color: var(--green);
+    font-size: 12px;
+    font-weight: 700;
+  }
+
+  /* PAYMENT FORM */
+  .form-container {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 36px;
+    max-width: 600px;
+  }
+  .form-group { margin-bottom: 20px; }
+  .form-group label {
+    display: block; font-size: 13px; font-weight: 500;
+    color: var(--text-dim); margin-bottom: 8px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .form-group input, .form-group select {
+    width: 100%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 12px 16px;
+    border-radius: 10px;
+    font-size: 15px;
+    font-family: 'DM Sans', sans-serif;
+    transition: border-color 0.2s;
+    outline: none;
+    -webkit-appearance: none;
+  }
+  .form-group input:focus, .form-group select:focus {
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px var(--green-glow);
+  }
+  .form-group select option { background: #111a15; }
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  .payment-methods { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
+  .pay-method {
+    flex: 1; min-width: 120px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px;
+    cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; gap: 10px;
+    font-size: 14px; font-weight: 500;
+  }
+  .pay-method:hover { border-color: var(--green); }
+  .pay-method.active { border-color: var(--green); background: var(--green-glow); color: var(--green); }
+  .pay-method .icon { font-size: 20px; }
+
+  .momo-input { position: relative; }
+  .momo-input .flag {
+    position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
+    font-size: 18px;
+  }
+  .momo-input input { padding-left: 44px; }
+
+  .summary-box {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 24px;
+  }
+  .summary-row {
+    display: flex; justify-content: space-between;
+    font-size: 14px; padding: 6px 0;
+    color: var(--text-dim);
+  }
+  .summary-row.total {
+    color: var(--text);
+    font-weight: 600; font-size: 16px;
+    border-top: 1px solid var(--border);
+    margin-top: 8px; padding-top: 14px;
+  }
+  .summary-row.total .sum-val { color: var(--green); font-family: 'Syne', sans-serif; font-size: 18px; }
+
+  /* STEPS */
+  .steps {
+    display: flex; align-items: center; gap: 0;
+    margin-bottom: 40px;
+  }
+  .step {
+    display: flex; align-items: center; gap: 10px;
+    font-size: 13px; font-weight: 500;
+    color: var(--text-dim);
+  }
+  .step-num {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px; font-weight: 700;
+    transition: all 0.3s;
+  }
+  .step.active .step-num { background: var(--green); border-color: var(--green); color: #0a0f0d; }
+  .step.done .step-num { background: var(--green-glow); border-color: var(--green); color: var(--green); }
+  .step.active { color: var(--text); }
+  .step-line { flex: 1; height: 1px; background: var(--border); margin: 0 12px; }
+  .step-line.done { background: var(--green); }
+
+  /* SUCCESS */
+  .success-screen {
+    text-align: center;
+    padding: 60px 0;
+  }
+  .success-icon {
+    width: 80px; height: 80px;
+    background: var(--green-glow);
+    border: 2px solid var(--green);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 36px;
+    margin: 0 auto 32px;
+    animation: popIn 0.5s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  @keyframes popIn {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .success-screen h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px; font-weight: 800; margin-bottom: 12px;
+  }
+  .success-screen p { color: var(--text-dim); font-size: 16px; max-width: 400px; margin: 0 auto 32px; }
+  .receipt-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 28px;
+    max-width: 420px; margin: 0 auto 32px;
+    text-align: left;
+  }
+  .receipt-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 20px;
+  }
+  .receipt-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; }
+  .receipt-id { font-size: 12px; color: var(--text-dim); }
+  .receipt-row {
+    display: flex; justify-content: space-between;
+    font-size: 13px; padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+    color: var(--text-dim);
+  }
+  .receipt-row:last-child { border-bottom: none; }
+  .receipt-row strong { color: var(--text); }
+
+  /* DASHBOARD */
+  .dash-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 32px;
+  }
+  .dash-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 24px;
+  }
+  .dash-card .dc-label { font-size: 12px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .dash-card .dc-value { font-family: 'Syne', sans-serif; font-size: 26px; font-weight: 800; }
+  .dash-card .dc-sub { font-size: 12px; color: var(--text-dim); margin-top: 6px; }
+  .dc-green { color: var(--green); }
+  .dc-yellow { color: var(--accent); }
+
+  .history-table {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+  .history-table table { width: 100%; border-collapse: collapse; }
+  .history-table th {
+    background: var(--surface2);
+    padding: 14px 20px;
+    font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--text-dim); text-align: left;
+    border-bottom: 1px solid var(--border);
+  }
+  .history-table td {
+    padding: 14px 20px;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .history-table tr:last-child td { border-bottom: none; }
+  .badge {
+    display: inline-block; padding: 3px 10px;
+    border-radius: 100px; font-size: 11px; font-weight: 600;
+  }
+  .badge.paid { background: rgba(0,232,122,0.15); color: var(--green); }
+  .badge.pending { background: rgba(255,204,68,0.15); color: var(--accent); }
+  .badge.due { background: rgba(255,85,102,0.15); color: var(--red); }
+
+  /* ALERTS */
+  .alert {
+    display: flex; align-items: flex-start; gap: 12px;
+    padding: 14px 18px; border-radius: 10px;
+    margin-bottom: 16px; font-size: 14px;
+  }
+  .alert.info { background: var(--green-glow); border: 1px solid rgba(0,232,122,0.2); }
+  .alert.warning { background: rgba(255,204,68,0.08); border: 1px solid rgba(255,204,68,0.2); color: var(--accent); }
+
+  /* FOOTER TAG */
+  .footer-tag {
+    text-align: center; margin-top: 60px;
+    font-size: 12px; color: var(--text-dim);
+  }
+  .footer-tag a { color: var(--green); text-decoration: none; }
+
+  @media(max-width:600px){
+    nav { padding: 0 16px; }
+    .form-row { grid-template-columns: 1fr; }
+    .hero-actions { flex-direction: column; align-items: center; }
+    .stats-strip { grid-template-columns: 1fr; }
+    .form-container { padding: 20px; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Bima<span>Pay</span></div>
+  <div class="nav-links">
+    <a href="#" class="active" onclick="showPage('home',this)">Home</a>
+    <a href="#" onclick="showPage('pay',this)">Pay Insurance</a>
+    <a href="#" onclick="showPage('dashboard',this)">My Account</a>
+  </div>
+  <button class="nav-btn" onclick="showPage('pay',null)">Pay Now</button>
+</nav>
+
+<main>
+
+  <!-- HOME PAGE -->
+  <div id="page-home" class="page active">
+    <div class="hero">
+      <div class="hero-badge">Secure · Fast · Rwanda</div>
+      <h1>Pay Your Insurance<br>in <span class="highlight">Seconds</span></h1>
+      <p>Health, motor, property & life insurance — all covered. Pay instantly via MTN MoMo, Airtel Money, or bank card.</p>
+      <div class="hero-actions">
+        <button class="btn-primary" onclick="showPage('pay',null)">Pay Insurance →</button>
+        <button class="btn-secondary" onclick="showPage('dashboard',null)">View My Account</button>
+      </div>
+    </div>
+
+    <div class="stats-strip">
+      <div class="stat">
+        <span class="stat-num">85K+</span>
+        <div class="stat-label">Policies Paid</div>
+      </div>
+      <div class="stat">
+        <span class="stat-num">4 min</span>
+        <div class="stat-label">Average Payment Time</div>
+      </div>
+      <div class="stat">
+        <span class="stat-num">99.8%</span>
+        <div class="stat-label">Uptime Reliability</div>
+      </div>
+    </div>
+
+    <h2 class="section-title">Choose Your <span>Insurance Type</span></h2>
+    <div class="plans-grid">
+      <div class="plan-card" onclick="selectPlanHome('Mutuelle de Santé','1,000 RWF','health')">
+        <div class="plan-tag">Popular</div>
+        <div class="plan-icon">🏥</div>
+        <div class="plan-name">Mutuelle de Santé</div>
+        <div class="plan-desc">Community-based health insurance covering you and your family at any public health facility.</div>
+        <div class="plan-price"><span class="amount">1,000</span><span class="period">RWF/month</span></div>
+        <div class="plan-features">
+          <div class="plan-feature">Inpatient & outpatient</div>
+          <div class="plan-feature">Maternity coverage</div>
+          <div class="plan-feature">Medication included</div>
+        </div>
+      </div>
+      <div class="plan-card" onclick="selectPlanHome('Motor Insurance','15,000 RWF','motor')">
+        <div class="plan-icon">🚗</div>
+        <div class="plan-name">Motor Insurance</div>
+        <div class="plan-desc">Comprehensive or third-party cover for your vehicle. Required by Rwandan law.</div>
+        <div class="plan-price"><span class="amount">15,000</span><span class="period">RWF/year</span></div>
+        <div class="plan-features">
+          <div class="plan-feature">Third-party liability</div>
+          <div class="plan-feature">Accident coverage</div>
+          <div class="plan-feature">Theft & fire optional</div>
+        </div>
+      </div>
+      <div class="plan-card" onclick="selectPlanHome('Life Insurance','5,000 RWF','life')">
+        <div class="plan-icon">💚</div>
+        <div class="plan-name">Life Insurance</div>
+        <div class="plan-desc">Protect your loved ones financially. Term and whole-life plans available.</div>
+        <div class="plan-price"><span class="amount">5,000</span><span class="period">RWF/month</span></div>
+        <div class="plan-features">
+          <div class="plan-feature">Death benefit payout</div>
+          <div class="plan-feature">Disability coverage</div>
+          <div class="plan-feature">Savings component</div>
+        </div>
+      </div>
+      <div class="plan-card" onclick="selectPlanHome('Property Insurance','8,000 RWF','property')">
+        <div class="plan-icon">🏠</div>
+        <div class="plan-name">Property Insurance</div>
+        <div class="plan-desc">Protect your home or business premises against fire, flood, and burglary.</div>
+        <div class="plan-price"><span class="amount">8,000</span><span class="period">RWF/month</span></div>
+        <div class="plan-features">
+          <div class="plan-feature">Fire & flood damage</div>
+          <div class="plan-feature">Burglary protection</div>
+          <div class="plan-feature">Rebuilding costs</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAYMENT PAGE -->
+  <div id="page-pay" class="page">
+    <div class="steps">
+      <div class="step done" id="step1"><span class="step-num">1</span> Select Plan</div>
+      <div class="step-line done" id="line1"></div>
+      <div class="step active" id="step2"><span class="step-num">2</span> Your Details</div>
+      <div class="step-line" id="line2"></div>
+      <div class="step" id="step3"><span class="step-num">3</span> Payment</div>
+      <div class="step-line" id="line3"></div>
+      <div class="step" id="step4"><span class="step-num">4</span> Done</div>
+    </div>
+
+    <!-- STEP A: Plan selection -->
+    <div id="step-a">
+      <h2 class="section-title">Select <span>Insurance Plan</span></h2>
+      <div class="plans-grid" id="pay-plans">
+        <div class="plan-card" onclick="selectPlan(this,'Mutuelle de Santé','1,000')">
+          <div class="plan-tag">Popular</div>
+          <div class="plan-icon">🏥</div>
+          <div class="plan-name">Mutuelle de Santé</div>
+          <div class="plan-desc">Community health insurance covering outpatient & inpatient care.</div>
+          <div class="plan-price"><span class="amount">1,000</span><span class="period">RWF/month</span></div>
+        </div>
+        <div class="plan-card" onclick="selectPlan(this,'Motor Insurance','15,000')">
+          <div class="plan-icon">🚗</div>
+          <div class="plan-name">Motor Insurance</div>
+          <div class="plan-desc">Third-party or comprehensive vehicle cover.</div>
+          <div class="plan-price"><span class="amount">15,000</span><span class="period">RWF/year</span></div>
+        </div>
+        <div class="plan-card" onclick="selectPlan(this,'Life Insurance','5,000')">
+          <div class="plan-icon">💚</div>
+          <div class="plan-name">Life Insurance</div>
+          <div class="plan-desc">Protect your family with a life insurance plan.</div>
+          <div class="plan-price"><span class="amount">5,000</span><span class="period">RWF/month</span></div>
+        </div>
+        <div class="plan-card" onclick="selectPlan(this,'Property Insurance','8,000')">
+          <div class="plan-icon">🏠</div>
+          <div class="plan-name">Property Insurance</div>
+          <div class="plan-desc">Protect home or business against damage.</div>
+          <div class="plan-price"><span class="amount">8,000</span><span class="period">RWF/month</span></div>
+        </div>
+      </div>
+      <button class="btn-primary" onclick="goToDetails()" style="margin-top:8px">Continue →</button>
+    </div>
+
+    <!-- STEP B: Details -->
+    <div id="step-b" style="display:none">
+      <h2 class="section-title">Personal <span>Details</span></h2>
+      <div class="form-container">
+        <div class="form-row">
+          <div class="form-group">
+            <label>First Name</label>
+            <input type="text" id="fname" placeholder="Jean" />
+          </div>
+          <div class="form-group">
+            <label>Last Name</label>
+            <input type="text" id="lname" placeholder="Mugisha" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>National ID (Indangamuntu)</label>
+          <input type="text" id="nid" placeholder="1199012345678901" maxlength="16" />
+        </div>
+        <div class="form-group">
+          <label>Province</label>
+          <select id="province">
+            <option value="">Select Province</option>
+            <option>Kigali</option>
+            <option>Eastern Province</option>
+            <option>Western Province</option>
+            <option>Northern Province</option>
+            <option>Southern Province</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Phone Number</label>
+          <div class="momo-input">
+            <span class="flag">🇷🇼</span>
+            <input type="tel" id="phone" placeholder="078 000 0000" />
+          </div>
+        </div>
+        <div style="display:flex;gap:12px;margin-top:8px">
+          <button class="btn-secondary" onclick="goStep('a')">← Back</button>
+          <button class="btn-primary" onclick="goToPayment()">Continue →</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP C: Payment -->
+    <div id="step-c" style="display:none">
+      <h2 class="section-title">Choose <span>Payment Method</span></h2>
+      <div class="form-container">
+        <div class="alert info">💡 All transactions are secured and encrypted. You will receive an SMS confirmation.</div>
+        <div class="payment-methods">
+          <div class="pay-method active" onclick="selectMethod(this,'momo')" id="method-momo">
+            <span class="icon">📱</span> MTN MoMo
+          </div>
+          <div class="pay-method" onclick="selectMethod(this,'airtel')" id="method-airtel">
+            <span class="icon">📲</span> Airtel Money
+          </div>
+          <div class="pay-method" onclick="selectMethod(this,'card')" id="method-card">
+            <span class="icon">💳</span> Bank Card
+          </div>
+        </div>
+
+        <!-- MoMo / Airtel -->
+        <div id="momo-fields">
+          <div class="form-group">
+            <label>Mobile Money Number</label>
+            <div class="momo-input">
+              <span class="flag">🇷🇼</span>
+              <input type="tel" id="momo-num" placeholder="078 000 0000" />
+            </div>
+          </div>
+          <div class="alert warning" style="font-size:13px">
+            ⚠️ You will receive a push notification on your phone. Enter your PIN to confirm payment.
+          </div>
+        </div>
+
+        <!-- Card -->
+        <div id="card-fields" style="display:none">
+          <div class="form-group">
+            <label>Card Number</label>
+            <input type="text" id="card-num" placeholder="1234 5678 9012 3456" maxlength="19" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Expiry Date</label>
+              <input type="text" id="card-exp" placeholder="MM/YY" maxlength="5" />
+            </div>
+            <div class="form-group">
+              <label>CVV</label>
+              <input type="text" id="card-cvv" placeholder="123" maxlength="3" />
+            </div>
+          </div>
+        </div>
+
+        <div class="summary-box">
+          <div class="summary-row"><span>Plan</span><strong id="sum-plan">—</strong></div>
+          <div class="summary-row"><span>Policy Holder</span><strong id="sum-name">—</strong></div>
+          <div class="summary-row"><span>Period</span><strong>1 Month</strong></div>
+          <div class="summary-row"><span>Processing Fee</span><strong>200 RWF</strong></div>
+          <div class="summary-row total"><span>Total</span><span class="sum-val" id="sum-total">—</span></div>
+        </div>
+
+        <div style="display:flex;gap:12px">
+          <button class="btn-secondary" onclick="goStep('b')">← Back</button>
+          <button class="btn-primary" onclick="processPayment()" style="flex:1">Confirm & Pay</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP D: Success -->
+    <div id="step-d" style="display:none">
+      <div class="success-screen">
+        <div class="success-icon">✅</div>
+        <h2>Payment Successful!</h2>
+        <p>Your insurance has been renewed. A confirmation SMS has been sent to your phone.</p>
+        <div class="receipt-card">
+          <div class="receipt-header">
+            <span class="receipt-title">🧾 Receipt</span>
+            <span class="receipt-id" id="receipt-id">#BP-000000</span>
+          </div>
+          <div class="receipt-row"><span>Plan</span><strong id="r-plan">—</strong></div>
+          <div class="receipt-row"><span>Policy Holder</span><strong id="r-name">—</strong></div>
+          <div class="receipt-row"><span>Amount Paid</span><strong id="r-amount" style="color:var(--green)">—</strong></div>
+          <div class="receipt-row"><span>Date</span><strong id="r-date">—</strong></div>
+          <div class="receipt-row"><span>Status</span><strong style="color:var(--green)">✓ Confirmed</strong></div>
+        </div>
+        <div style="display:flex;gap:12px;justify-content:center">
+          <button class="btn-secondary" onclick="showPage('dashboard',null)">View My Account</button>
+          <button class="btn-primary" onclick="resetPayment()">Pay Another</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="page-dashboard" class="page">
+    <div style="margin-bottom:32px">
+      <h2 class="section-title">My <span>Insurance Account</span></h2>
+      <p style="color:var(--text-dim);font-size:14px">Welcome back, Jean Mugisha — NID: 1199•••••••01</p>
+    </div>
+
+    <div class="dash-grid">
+      <div class="dash-card">
+        <div class="dc-label">Active Policies</div>
+        <div class="dc-value dc-green">2</div>
+        <div class="dc-sub">Mutuelle + Motor</div>
+      </div>
+      <div class="dash-card">
+        <div class="dc-label">Total Paid (2024)</div>
+        <div class="dc-value">42,200</div>
+        <div class="dc-sub">RWF</div>
+      </div>
+      <div class="dash-card">
+        <div class="dc-label">Next Payment Due</div>
+        <div class="dc-value dc-yellow">Mar 1</div>
+        <div class="dc-sub">Mutuelle de Santé</div>
+      </div>
+      <div class="dash-card">
+        <div class="dc-label">Coverage Status</div>
+        <div class="dc-value dc-green">Active</div>
+        <div class="dc-sub">Until 28 Feb 2025</div>
+      </div>
+    </div>
+
+    <div class="alert warning" style="margin-bottom:24px">
+      ⚠️ Your Mutuelle de Santé payment is due in <strong>3 days</strong>. 
+      <a href="#" onclick="showPage('pay',null)" style="color:var(--accent);text-decoration:underline;margin-left:8px">Pay Now →</a>
+    </div>
+
+    <h3 class="section-title" style="font-size:18px;margin-bottom:16px">Payment <span>History</span></h3>
+    <div class="history-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Policy</th>
+            <th>Amount</th>
+            <th>Method</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>1 Feb 2025</td>
+            <td>Mutuelle de Santé</td>
+            <td>1,200 RWF</td>
+            <td>MTN MoMo</td>
+            <td><span class="badge paid">Paid</span></td>
+          </tr>
+          <tr>
+            <td>15 Jan 2025</td>
+            <td>Motor Insurance</td>
+            <td>15,200 RWF</td>
+            <td>Bank Card</td>
+            <td><span class="badge paid">Paid</span></td>
+          </tr>
+          <tr>
+            <td>1 Jan 2025</td>
+            <td>Mutuelle de Santé</td>
+            <td>1,200 RWF</td>
+            <td>MTN MoMo</td>
+            <td><span class="badge paid">Paid</span></td>
+          </tr>
+          <tr>
+            <td>1 Dec 2024</td>
+            <td>Mutuelle de Santé</td>
+            <td>1,200 RWF</td>
+            <td>Airtel Money</td>
+            <td><span class="badge paid">Paid</span></td>
+          </tr>
+          <tr>
+            <td>1 Mar 2025</td>
+            <td>Mutuelle de Santé</td>
+            <td>1,200 RWF</td>
+            <td>—</td>
+            <td><span class="badge due">Due</span></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="margin-top:24px">
+      <button class="btn-primary" onclick="showPage('pay',null)">+ Pay Insurance</button>
+    </div>
+  </div>
+
+</main>
+
+<div class="footer-tag">
+  BimaPay Rwanda · Secured by RRA · <a href="#">Terms</a> · <a href="#">Privacy</a>
+</div>
+
+<script>
+  // State
+  let selectedPlan = null;
+  let selectedPlanAmount = null;
+  let selectedPayMethod = 'momo';
+
+  function showPage(page, linkEl) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById('page-'+page).classList.add('active');
+    document.querySelectorAll('.nav-links a').forEach(a => a.classList.remove('active'));
+    if (linkEl) linkEl.classList.add('active');
+  }
+
+  function selectPlanHome(name, price, type) {
+    selectedPlan = name;
+    selectedPlanAmount = price;
+    showPage('pay', null);
+    setTimeout(() => {
+      // auto-select in pay page
+      const cards = document.querySelectorAll('#pay-plans .plan-card');
+      cards.forEach(c => {
+        c.classList.remove('selected');
+        if (c.querySelector('.plan-name').textContent === name) c.classList.add('selected');
+      });
+    }, 50);
+  }
+
+  function selectPlan(el, name, amount) {
+    document.querySelectorAll('#pay-plans .plan-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedPlan = name;
+    selectedPlanAmount = amount;
+  }
+
+  function goToDetails() {
+    if (!selectedPlan) { alert('Please select an insurance plan first.'); return; }
+    goStep('b');
+    setStepProgress(2);
+  }
+
+  function goToPayment() {
+    const fname = document.getElementById('fname').value.trim();
+    const lname = document.getElementById('lname').value.trim();
+    const nid = document.getElementById('nid').value.trim();
+    const province = document.getElementById('province').value;
+    if (!fname || !lname || !nid || !province) {
+      alert('Please fill in all required fields.'); return;
+    }
+    // Update summary
+    document.getElementById('sum-plan').textContent = selectedPlan;
+    document.getElementById('sum-name').textContent = fname + ' ' + lname;
+    const total = parseInt(selectedPlanAmount.replace(',','')) + 200;
+    document.getElementById('sum-total').textContent = total.toLocaleString() + ' RWF';
+    goStep('c');
+    setStepProgress(3);
+  }
+
+  function goStep(s) {
+    ['a','b','c','d'].forEach(x => document.getElementById('step-'+x).style.display = 'none');
+    document.getElementById('step-'+s).style.display = 'block';
+  }
+
+  function setStepProgress(n) {
+    for (let i=1;i<=4;i++) {
+      const el = document.getElementById('step'+i);
+      el.classList.remove('active','done');
+      if (i < n) el.classList.add('done');
+      else if (i === n) el.classList.add('active');
+    }
+    for (let i=1;i<=3;i++) {
+      const el = document.getElementById('line'+i);
+      if (el) el.classList.toggle('done', i < n);
+    }
+  }
+
+  function selectMethod(el, method) {
+    document.querySelectorAll('.pay-method').forEach(m => m.classList.remove('active'));
+    el.classList.add('active');
+    selectedPayMethod = method;
+    document.getElementById('momo-fields').style.display = (method === 'card') ? 'none' : 'block';
+    document.getElementById('card-fields').style.display = (method === 'card') ? 'block' : 'none';
+  }
+
+  function processPayment() {
+    const fname = document.getElementById('fname').value.trim();
+    const lname = document.getElementById('lname').value.trim();
+    const total = parseInt(selectedPlanAmount.replace(',','')) + 200;
+
+    // Simulate processing
+    const btn = event.target;
+    btn.textContent = 'Processing...';
+    btn.disabled = true;
+
+    setTimeout(() => {
+      // Fill receipt
+      const ref = 'BP-' + Math.floor(Math.random()*900000+100000);
+      document.getElementById('receipt-id').textContent = '#' + ref;
+      document.getElementById('r-plan').textContent = selectedPlan;
+      document.getElementById('r-name').textContent = fname + ' ' + lname;
+      document.getElementById('r-amount').textContent = total.toLocaleString() + ' RWF';
+      document.getElementById('r-date').textContent = new Date().toLocaleDateString('en-RW', {day:'numeric',month:'long',year:'numeric'});
+
+      goStep('d');
+      setStepProgress(4);
+      btn.textContent = 'Confirm & Pay';
+      btn.disabled = false;
+    }, 2000);
+  }
+
+  function resetPayment() {
+    selectedPlan = null;
+    selectedPlanAmount = null;
+    document.querySelectorAll('#pay-plans .plan-card').forEach(c => c.classList.remove('selected'));
+    goStep('a');
+    setStepProgress(1);
+    showPage('pay', null);
+  }
+
+  // Card number formatting
+  document.addEventListener('input', function(e) {
+    if (e.target.id === 'card-num') {
+      let v = e.target.value.replace(/\D/g,'').slice(0,16);
+      e.target.value = v.replace(/(.{4})/g,'$1 ').trim();
+    }
+    if (e.target.id === 'card-exp') {
+      let v = e.target.value.replace(/\D/g,'').slice(0,4);
+      if (v.length > 2) v = v.slice(0,2)+'/'+v.slice(2);
+      e.target.value = v;
+    }
+  });
+</script>
+</body>
+</html>
